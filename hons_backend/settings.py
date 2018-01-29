@@ -11,6 +11,14 @@ https://docs.djangoproject.com/en/2.0/ref/settings/
 """
 
 import os
+import logging
+
+
+logger = logging.getLogger(__name__)
+
+SITE_ROOT = os.path.realpath(os.path.dirname(__file__))
+
+DEBUG = False
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -23,7 +31,6 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = 'w(=+0rr)ou0af_wk+!3w9&9pj1n1&2t=*qr#+5msz)^y4ldie5'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
@@ -69,12 +76,6 @@ TEMPLATES = [
     },
 ]
 
-
-DATABASES = {
-    'default': {
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-    }
-}
 
 WSGI_APPLICATION = 'hons_backend.wsgi.application'
 
@@ -122,7 +123,7 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 try:
-    from local_settings import *
+    from .local_settings import *
 except ImportError:
-    pass
+    logger.error("ERROR:: NO LOCAL_SETTINGS FILE")
 
