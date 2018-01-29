@@ -20,4 +20,5 @@ from api_vlad import views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api_vlad/test', views.test, name='test'),
+    path('api_vlad/predict', views.predict, name='predict')
 ]
