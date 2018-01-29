@@ -3,7 +3,7 @@ from django.db import models
 # Create your models here.
 
 class CollectedData(models.Model):
-	phone_timestamp = models.IntegerField()
+	phone_timestamp = models.BigIntegerField()
 	pm1 = models.DecimalField(max_digits=15, decimal_places=7)
 	pm2_5 = models.DecimalField(max_digits=15, decimal_places=7)
 	pm10 = models.DecimalField(max_digits=15, decimal_places=7)
