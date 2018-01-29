@@ -15,9 +15,12 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from api_vlad import views
+from api_vlad import views as vlad_views
+from api_mihai import views as mihai_views
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api_vlad/test', views.test, name='test'),
+    path('api_vlad/test', vlad_views.test, name='test'),
+    path('api_mihai/labelled_midday', mihai_views.labelled_midday, name='labelled_midday')
 ]
