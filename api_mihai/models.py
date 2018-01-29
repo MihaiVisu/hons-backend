@@ -30,4 +30,4 @@ class CollectedData(models.Model):
 	longitude = models.DecimalField(max_digits=15, decimal_places=7)
 	altitude = models.DecimalField(max_digits=15, decimal_places=7)
 	accuracy = models.DecimalField(max_digits=15, decimal_places=7)
-	time = models.CharField(max_length=50)
+	time = models.TimeField()

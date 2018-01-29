@@ -25,7 +25,7 @@ SECRET_KEY = 'w(=+0rr)ou0af_wk+!3w9&9pj1n1&2t=*qr#+5msz)^y4ldie5'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -69,17 +69,18 @@ TEMPLATES = [
     },
 ]
 
+
+DATABASES = {
+    'default': {
+        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+    }
+}
+
 WSGI_APPLICATION = 'hons_backend.wsgi.application'
 
 
 # Database
 # https://docs.djangoproject.com/en/2.0/ref/settings/#databases
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-    }
-}
 
 
 # Password validation
@@ -119,3 +120,9 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.0/howto/static-files/
 
 STATIC_URL = '/static/'
+
+try:
+    from local_settings import *
+except ImportError:
+    pass
+
