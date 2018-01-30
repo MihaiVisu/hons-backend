@@ -9,13 +9,13 @@ class GeoJsonSerializer(object):
 			"features": []
 		}
 
-	def serialize(self, model, data):
-		for obj in data:
-			self.__features['features'].append(self.__create_feature(model, obj))
+	def serialize(self, model, data, labels):
+		for obj, label in zip(data, labels):
+			self.__features['features'].append(self.__create_feature(model, obj, label))
 		return self.__features
 
 	@staticmethod
-	def __create_feature(model, obj):
+	def __create_feature(model, obj, label):
 		properties = {}
 		for attr in model._meta.get_fields():
 			if attr.name == 'dataset':
@@ -26,6 +26,7 @@ class GeoJsonSerializer(object):
 				longitude = getattr(obj, attr.name)
 			else:
 				properties[attr.name] = getattr(obj, attr.name)
+			properties['label'] = str(label)
 		feature = {
 			"type": "Feature",
 			"geometry": {

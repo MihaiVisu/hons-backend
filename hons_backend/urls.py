@@ -23,6 +23,6 @@ urlpatterns = [
 	path('admin/', admin.site.urls),
 	path('api_vlad/test', vlad_views.test, name='test'),
 	path('api_vlad/predict', vlad_views.predict, name='predict'),
-	path('api_mihai/labelled_midday', mihai_views.labelled_midday),
-	path('api_mihai/labelled_afternoon', mihai_views.labelled_afternoon),
+	path('api_mihai/labelled_midday_bins', mihai_views.labelled_midday_bins),
+	path('api_mihai/labelled_afternoon_bins', mihai_views.labelled_afternoon_bins),
 ]
