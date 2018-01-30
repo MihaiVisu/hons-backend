@@ -22,5 +22,6 @@ from api_mihai import views as mihai_views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api_vlad/test', vlad_views.test, name='test'),
-    path('api_mihai/labelled_midday', mihai_views.labelled_midday, name='labelled_midday')
+    path('api_mihai/labelled_midday', mihai_views.labelled_midday),
+    path('api_mihai/labelled_afternoon', mihai_views.labelled_afternoon)
 ]
