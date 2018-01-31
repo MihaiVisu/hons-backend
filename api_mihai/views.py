@@ -12,7 +12,7 @@ def labelled_midday_bins(request):
 	classifier = KmeansClassifier()
 	# remove bin0 outliers
 	bin_vals = ['bin'+str(x) for x in range(0,16)]
-	features = CollectedData.objects.filter(dataset__name="Walking Meadows Data Midday").filter(bin0__gt=0).filter(bin0__lt=450)
+	features = CollectedData.objects.order_by('time').filter(dataset__name="Walking Meadows Data Midday").filter(bin0__gt=0).filter(bin0__lt=450)
 	clusters = classifier.get_environment_clusters(features, 80, bin_vals)
 	return JsonResponse(
 		serializer.serialize(CollectedData, features, clusters)
@@ -25,7 +25,7 @@ def labelled_afternoon_bins(request):
 	classifier = KmeansClassifier()
 	# remove bin0 outliers
 	bin_vals = ['bin'+str(x) for x in range(0,16)]
-	features = CollectedData.objects.filter(dataset__name="Walking Meadows Data Afternoon").filter(bin0__gt=0).filter(bin0__lt=450)
+	features = CollectedData.objects.order_by('time').filter(dataset__name="Walking Meadows Data Afternoon").filter(bin0__gt=0).filter(bin0__lt=450)
 	clusters = classifier.get_environment_clusters(features, 80, bin_vals)
 	return JsonResponse(
 		serializer.serialize(CollectedData, features, clusters)

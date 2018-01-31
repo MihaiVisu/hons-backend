@@ -16,14 +16,14 @@ class KmeansClassifier(object):
         coordinates = data.values_list('latitude', 'longitude')
         indices = kmeans.fit_predict(coordinates)
         # initialise means of queried columns
-        means = np.zeros((cluster_no, len(cols)+1))
+        means = np.zeros((cluster_no, len(cols)))
         # assign clustered_indices to dataframe
         b = np.zeros((len(data), len(cols)+1))
         b[:,:-1] = data.values_list(*cols)
         b[:,-1] = indices
         # compute means of queried columns
         for index in np.unique(indices):
-            means[index] = np.mean(b[b[:,-1]==index][:-1], axis=0)
+            means[index] = np.mean(b[b[:,-1]==index][:-1])
         return means, indices
 
 
