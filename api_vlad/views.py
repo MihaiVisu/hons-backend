@@ -80,7 +80,7 @@ def predict(request):
 		content = body["data"]
 		print(content)
 
-		rf_prediction = rf.predict(content)
+		rf_prediction = rf.predict([content])
 		response = {
 			"prediction" : str(rf_prediction[0])
 		}
