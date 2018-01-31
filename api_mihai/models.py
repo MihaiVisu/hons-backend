@@ -31,3 +31,8 @@ class CollectedData(models.Model):
 	altitude = models.DecimalField(max_digits=15, decimal_places=7)
 	accuracy = models.DecimalField(max_digits=15, decimal_places=7)
 	time = models.TimeField()
+	dataset = models.ForeignKey('Dataset', blank=True, null=True, on_delete=models.CASCADE)
+
+
+class Dataset(models.Model):
+	name = models.CharField(max_length=50)
