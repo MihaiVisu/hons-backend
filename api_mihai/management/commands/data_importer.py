@@ -9,6 +9,7 @@ class Command(BaseCommand):
 
 	def add_arguments(self, parser):
 		parser.add_argument('file_name', type=str)
+		parser.add_argument('dataset', type=int)
 
 	def handle(self, *args, **options):
 
@@ -34,6 +35,7 @@ class Command(BaseCommand):
 					accuracy=float(row['gpsAccuracy']),
 					total=row['total'],
 					time=row['time'],
+					dataset_id=options['dataset'],
 				)
 
 				for val in bin_vals:
