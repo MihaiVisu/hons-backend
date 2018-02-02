@@ -1,0 +1,12 @@
+
+Django==2.0.1
+django-cors-headers==2.1.0
+jupyter==1.0.0
+matplotlib==2.0.2
+numpy==1.13.1
+pandas==0.21.0
+psycopg2==2.7.3.2
+scikit-learn==0.19.1
+scipy==0.19.1
+seaborn==0.8.1
+simplejson==3.13.2
