@@ -1,6 +1,7 @@
 import json
 
 from django.http import JsonResponse
+
 from django.views.decorators.csrf import csrf_exempt
 
 from .models import *
@@ -13,10 +14,11 @@ def labelled_unsupervised_data(request, dataset_id):
 	serializer = GeoJsonSerializer()
 	classifier = KmeansClassifier()
 
-	attrs = None
-
-	if request.method == "POST":
-		attrs = json.loads(request.body.decode('utf-8'))['attrs']
+	if request.method == "GET":
+		attrs = json.loads(request.GET.get('attrs[]'))
+	else:
+		attrs = None
+	print(attrs)
 
 	features = CollectedData.objects.order_by('time').filter(
 		dataset_id=dataset_id).filter(
@@ -26,7 +28,3 @@ def labelled_unsupervised_data(request, dataset_id):
 	return JsonResponse(
 		serializer.serialize(CollectedData, features, clusters)
 	)
-
-
-def labelled_london_unsupervised(request):
-	serializer = GeoJsonSerializer()
