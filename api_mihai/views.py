@@ -8,7 +8,6 @@ from .models import *
 from .serializers import GeoJsonSerializer
 from .classifiers import KmeansClassifier
 
-# @csrf_exempt
 def labelled_unsupervised_data(request, dataset_id):
 	serializer = GeoJsonSerializer()
 	classifier = KmeansClassifier()
