@@ -17,7 +17,6 @@ def labelled_unsupervised_data(request, dataset_id):
 		attrs = urllib.parse.unquote(request.GET.get('attrs[]')).split(',')
 	else:
 		attrs = None
-	print(attrs, type(attrs))
 
 	features = CollectedData.objects.order_by('time').filter(
 		dataset_id=dataset_id).filter(
@@ -29,8 +28,13 @@ def labelled_unsupervised_data(request, dataset_id):
 	)
 
 
-def labelled_london_data(request):
+def labelled_london_data(request, data_type):
 	serializer = GeoJsonSerializer()
+
+	if request.method == "GET":
+		attrs = urllib.parse.unquote(request.GET.get('attrs[]')).split(',')
+	else:
+		attrs = None
 
 	# apply the outlier removal for pm10 values for the training data
 	# according to experiments results
@@ -39,7 +43,11 @@ def labelled_london_data(request):
 		dataset=dataset).filter(
 		pm10__gt=0).filter(pm10__lt=450)
 
-	clusters = features.values_list('transport_label_id', flat=True)
+	if data_type == 'supervised':
+		clusters = features.values_list('transport_label_id', flat=True)
+	else:
+		classifier = KmeansClassifier()
+		clusters = classifier.get_environment_clusters(features, 80, attrs)
 	return JsonResponse(
 		serializer.serialize(CollectedData, features, clusters)
 	)
