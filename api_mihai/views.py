@@ -1,4 +1,4 @@
-import json
+import urllib
 
 from django.http import JsonResponse
 
@@ -8,17 +8,16 @@ from .models import *
 from .serializers import GeoJsonSerializer
 from .classifiers import KmeansClassifier
 
-
-@csrf_exempt
+# @csrf_exempt
 def labelled_unsupervised_data(request, dataset_id):
 	serializer = GeoJsonSerializer()
 	classifier = KmeansClassifier()
 
 	if request.method == "GET":
-		attrs = json.loads(request.GET.get('attrs[]'))
+		attrs = urllib.parse.unquote(request.GET.get('attrs[]')).split(',')
 	else:
 		attrs = None
-	print(attrs)
+	print(attrs, type(attrs))
 
 	features = CollectedData.objects.order_by('time').filter(
 		dataset_id=dataset_id).filter(
