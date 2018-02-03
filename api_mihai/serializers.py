@@ -18,6 +18,8 @@ class GeoJsonSerializer(object):
         for attr in model._meta.get_fields():
             if attr.name == 'dataset':
                 continue
+            if attr.name == 'transport_label':
+                continue
             elif attr.name == 'latitude':
                 latitude = getattr(obj, attr.name)
             elif attr.name == 'longitude':

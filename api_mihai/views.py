@@ -8,6 +8,7 @@ from .models import *
 from .serializers import GeoJsonSerializer
 from .classifiers import KmeansClassifier
 
+
 def labelled_unsupervised_data(request, dataset_id):
 	serializer = GeoJsonSerializer()
 	classifier = KmeansClassifier()
@@ -23,6 +24,22 @@ def labelled_unsupervised_data(request, dataset_id):
 		bin0__gt=0).filter(bin0__lt=450)
 
 	clusters = classifier.get_environment_clusters(features, 80, attrs)
+	return JsonResponse(
+		serializer.serialize(CollectedData, features, clusters)
+	)
+
+
+def labelled_london_data(request):
+	serializer = GeoJsonSerializer()
+
+	# apply the outlier removal for pm10 values for the training data
+	# according to experiments results
+	dataset = Dataset.objects.get(name='London Data')
+	features = CollectedData.objects.order_by('time').filter(
+		dataset=dataset).filter(
+		pm10__gt=0).filter(pm10__lt=450)
+
+	clusters = features.values_list('transport_label_id', flat=True)
 	return JsonResponse(
 		serializer.serialize(CollectedData, features, clusters)
 	)
