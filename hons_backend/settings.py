@@ -34,7 +34,6 @@ SECRET_KEY = 'w(=+0rr)ou0af_wk+!3w9&9pj1n1&2t=*qr#+5msz)^y4ldie5'
 
 ALLOWED_HOSTS = ['*']
 
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -44,6 +43,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'corsheaders',
     'api_mihai',
     'api_vlad',
 ]
@@ -51,6 +51,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -78,6 +79,8 @@ TEMPLATES = [
 
 
 WSGI_APPLICATION = 'hons_backend.wsgi.application'
+
+CORS_ORIGIN_ALLOW_ALL = True
 
 
 # Database
