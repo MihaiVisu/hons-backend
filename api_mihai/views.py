@@ -9,7 +9,11 @@ from .serializers import GeoJsonSerializer
 from .classifiers import KmeansClassifier
 
 
-def labelled_unsupervised_data(request, dataset_id):
+def labelled_unsupervised_data(request, 
+	dataset_id, 
+	number_location_clusters, 
+	number_environment_clusters):
+
 	serializer = GeoJsonSerializer()
 	classifier = KmeansClassifier()
 
@@ -19,16 +23,21 @@ def labelled_unsupervised_data(request, dataset_id):
 		attrs = None
 
 	features = CollectedData.objects.order_by('time').filter(
-		dataset_id=dataset_id).filter(
-		bin0__gt=0).filter(bin0__lt=450)
+		dataset=dataset_id).filter(
+		pm10__gt=0).filter(pm10__lt=450).filter(temperature__gt=0)
 
-	clusters = classifier.get_environment_clusters(features, 80, attrs)
+	clusters = classifier.get_environment_clusters(features, number_location_clusters, attrs, number_environment_clusters)
+
 	return JsonResponse(
 		serializer.serialize(CollectedData, features, clusters)
 	)
 
 
-def labelled_london_data(request, data_type):
+def labelled_classified_data(request, 
+	classifier,
+	validation_criterion,
+	folds_number):
+
 	serializer = GeoJsonSerializer()
 
 	if request.method == "GET":
@@ -41,13 +50,31 @@ def labelled_london_data(request, data_type):
 	dataset = Dataset.objects.get(name='London Data')
 	features = CollectedData.objects.order_by('time').filter(
 		dataset=dataset).filter(
-		pm10__gt=0).filter(pm10__lt=450)
+		pm10__gt=0).filter(pm10__lt=450).filter(temperature__gt=0)
 
-	if data_type == 'supervised':
-		clusters = features.values_list('transport_label_id', flat=True)
-	else:
-		classifier = KmeansClassifier()
-		clusters = classifier.get_environment_clusters(features, 80, attrs)
+	clusters = features.values_list('transport_label_id', flat=True)
 	return JsonResponse(
 		serializer.serialize(CollectedData, features, clusters)
 	)
+
+
+def get_attributes(request):
+	excluded_fields = [
+		'transport_label',
+		'dataset',
+		'time',
+		'accuracy',
+		'time',
+		'altitude',
+		'phone_timestamp',
+		'id',
+	]
+
+	fields = tuple(map(lambda x: x.name, 
+		filter(lambda x: x.name not in excluded_fields, CollectedData._meta.get_fields())))
+	return JsonResponse(fields, safe=False)
+
+
+
+
+

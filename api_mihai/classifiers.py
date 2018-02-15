@@ -23,22 +23,22 @@ class KmeansClassifier(object):
         b[:, -1] = indices
         # compute means of queried columns
         for index in np.unique(indices):
-            means[index] = np.mean(b[b[:, -1] == index][:-1])
+            means[index] = np.mean(b[b[:, -1] == index][:,:-1], axis=0)
         return means, indices
 
     # method to get the clusters of the environments corresponding
-    # to the 5 environments based on
+    # to the 5-6 environments based on
     # the queried columns and number of location clusters
-    def get_environment_clusters(self, data, cluster_no, cols):
+    def get_environment_clusters(self, data, cluster_no, cols, number_environment_clusters):
         means, clustered_indices = self.__get_location_cluster_means(
             data, cluster_no, cols)
-        # we have 5 clusters corresponding to 5 different environments
-        environment_kmeans = KMeans(n_clusters=5, random_state=0)
+        # we have 5-6 clusters corresponding to 5-6 different environments
+        environment_kmeans = KMeans(n_clusters=number_environment_clusters, random_state=0)
         # predict the cluster indices
         environment_indices = environment_kmeans.fit_predict(means)
         # sort the indices based on the means of the clusters
         idx = np.argsort(environment_kmeans.cluster_centers_.sum(axis=1))
         lut = np.zeros_like(idx)
-        lut[idx] = np.arange(5)
+        lut[idx] = np.arange(number_environment_clusters)
         # append the indices to the dataframe
         return lut[environment_indices][clustered_indices]
