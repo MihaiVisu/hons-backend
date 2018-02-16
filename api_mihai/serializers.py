@@ -6,10 +6,11 @@ class GeoJsonSerializer(object):
             "features": []
         }
 
-    def serialize(self, model, data, labels):
+    def serialize(self, model, data, labels, extras):
         for obj, label in zip(data, labels):
             self.__features['features'].append(
                 self.__create_feature(model, obj, label))
+        self.__features.update(extras)
         return self.__features
 
     @staticmethod

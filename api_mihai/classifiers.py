@@ -1,7 +1,19 @@
 
 from sklearn.cluster import KMeans
 
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.svm import SVC
+from sklearn.neighbors import KNeighborsClassifier
+
+
 import numpy as np
+
+
+classifiers_dict = {
+    'rf': RandomForestClassifier(random_state=0, n_estimators=50, n_jobs=-1),
+    'svc': SVC(kernel="rbf", gamma="auto", probability=True),
+    'knn': KNeighborsClassifier(n_neighbors=15)
+}
 
 
 class KmeansClassifier(object):
