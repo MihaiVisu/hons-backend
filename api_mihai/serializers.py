@@ -10,7 +10,8 @@ class GeoJsonSerializer(object):
         for obj, label in zip(data, labels):
             self.__features['features'].append(
                 self.__create_feature(model, obj, label))
-        self.__features.update(extras)
+        if bool(extras):
+            self.__features.update(extras)
         return self.__features
 
     @staticmethod

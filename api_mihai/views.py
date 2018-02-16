@@ -34,7 +34,7 @@ def labelled_unsupervised_data(request,
 	clusters = classifier.get_environment_clusters(features, number_location_clusters, attrs, number_environment_clusters)
 
 	return JsonResponse(
-		serializer.serialize(CollectedData, features, clusters)
+		serializer.serialize(CollectedData, features, clusters, {})
 	)
 
 
