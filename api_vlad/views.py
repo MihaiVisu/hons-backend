@@ -7,6 +7,8 @@ import os
 import numpy as np
 import pandas as pd
 import sklearn as sklearn
+import datetime as dt
+import requests
 
 from sklearn.preprocessing import LabelEncoder
 from sklearn.cross_validation import train_test_split
@@ -18,45 +20,7 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.linear_model import LogisticRegression
 from sklearn.svm import LinearSVC, SVC
 from sklearn.neighbors import KNeighborsClassifier
-
-# # initialize paths to csv files
-# bedroom_data = os.path.join(os.getcwd(), 'api_vlad/data/indoor', 'flat-clean-2018-01-17.csv')
-# kitchen_data = os.path.join(os.getcwd(), 'api_vlad/data/indoor', 'kitchen-clean-2018-01-21.csv')
-
-# candle_data = os.path.join(os.getcwd(), 'api_vlad/data/candle', 'candle-burning-2017-11-20.csv')
-# frying_data = os.path.join(os.getcwd(), 'api_vlad/data/frying', 'frying-2018-01-20.csv')
-# boiling_data = os.path.join(os.getcwd(), 'api_vlad/data/boiling', 'boiling-2018-01-23.csv')
-
-# outdoor_data1 = os.path.join(os.getcwd(), 'api_vlad/data/outdoor', 'meadows-2017-12-04.csv')
-# outdoor_data2 = os.path.join(os.getcwd(), 'api_vlad/data/outdoor', 'meadows-2017-12-05.csv')
-
-# # load data from csv files to DataFrames
-# bedroom_data = pd.read_csv(bedroom_data, delimiter = ',')
-# kitchen_data = pd.read_csv(kitchen_data, delimiter = ',')
-
-# candle_data = pd.read_csv(candle_data, delimiter = ',')
-# frying_data = pd.read_csv(frying_data, delimiter = ',')
-# boiling_data = pd.read_csv(boiling_data, delimiter = ',')
-
-# outdoor_data1 = pd.read_csv(outdoor_data1, delimiter = ',')
-# outdoor_data2 = pd.read_csv(outdoor_data2, delimiter = ',')
-
-
-# # removing outliers
-# outdoor_data1 = outdoor_data1[[(x < 400 and x > 0) for x in outdoor_data1['bin0']]]
-# outdoor_data2 = outdoor_data2[[(x < 400 and x > 0) for x in outdoor_data2['bin0']]]
-
-# bedroom_data = bedroom_data[2:]
-
-# data = pd.concat([bedroom_data, kitchen_data, outdoor_data1, outdoor_data2, candle_data, frying_data, boiling_data])
-
-
-# Y = [0] * 536 + [1] * 486 + [2] * 280 + [3] * 48 + [4] * 103
-
-
-# # split dataset into train and test
-# X_train, X_test, Y_train, Y_test = train_test_split(X, Y, train_size=0.75, test_size=0.25, random_state=0)
-
+from sklearn.naive_bayes import GaussianNB
 
 ## Labels:
 # 0 - Clean Indoor
@@ -65,22 +29,55 @@ from sklearn.neighbors import KNeighborsClassifier
 # 3 - Frying Data
 # 4 - Boiling Data
 
-data1 = os.path.join(os.getcwd(), 'api_vlad/data/new', '001Indoor-Hoover-Candle-2018-02-06-labeled.csv')
-data2 = os.path.join(os.getcwd(), 'api_vlad/data/new', '002Indoor-Outdoor-2018-02-06-labeled.csv')
+data1 = pd.read_csv('api_vlad/data/new/012Outdoor-Night-Day-2018-02-25.csv', delimiter = ',')
 
-data1 = pd.read_csv(data1, delimiter = ',')
-data2 = pd.read_csv(data2, delimiter = ',')
+outdoor_day = data1[(data1['luxLevel'] > 10) & (data1['luxLevel'] < 400)]['luxLevel']
+outdoor_night = data1[data1['luxLevel'] < 10]['luxLevel']
 
-data = pd.concat([data1, data2])
+indoor_day = pd.read_csv('api_vlad/data/new/013Indoor-Day-2018-02-26.csv', delimiter = ',')
+indoor_day = indoor_day[indoor_day['luxLevel'] > 3]['luxLevel']
+indoor_night = pd.read_csv('api_vlad/data/new/014Indoor-Night-2018-02-26.csv', delimiter = ',')
+indoor_night = indoor_night['luxLevel']
 
-X = data[['bin' + str(x) for x in range(15)]]
-X = X.fillna(value=0)
+data_day = pd.DataFrame(pd.concat([outdoor_day, indoor_day], ignore_index=True))
+data_night = pd.DataFrame(pd.concat([outdoor_night, indoor_night], ignore_index=True))
 
-Y = data['label']
+labels_day = [1] * len(outdoor_day) + [0] * len(indoor_day)
+labels_night = [1] * len(outdoor_night) + [0] * len(indoor_night)
+
+X_train_day, X_test_day, Y_train_day, Y_test_day = train_test_split(data_day, labels_day, train_size=0.75, test_size=0.25, random_state=0)
+X_train_night, X_test_night, Y_train_night, Y_test_night = train_test_split(data_night, labels_night, train_size=0.75, test_size=0.25, random_state=0)
 
 
-# train ML model
-rf = RandomForestClassifier(n_estimators = 50).fit(X,Y)
+# Naive Bayes
+clf_day = GaussianNB()
+clf_day.fit(X_train_day, Y_train_day)
+
+clf_night = GaussianNB()
+clf_night.fit(X_train_night, Y_train_night)
+
+def day_night(data_input):
+    latitude = data_input['gpsLatitude']
+    longitude = data_input['gpsLongitude']
+    date = dt.datetime.fromtimestamp(data_input['phoneTimestamp'] / 1000)
+
+    url = "https://api.sunrise-sunset.org/json?lat=" + str(latitude) + "&lng=" + str(longitude) + "&date=" + str(date)
+
+    response = requests.get(url)
+
+    sunrise = response.json()['results']['sunrise']
+    sunrise = dt.datetime.strptime(sunrise, "%I:%M:%S %p").time()
+
+    sunset = response.json()['results']['sunset']
+    sunset = dt.datetime.strptime(sunset, "%I:%M:%S %p").time()
+
+    current_time = date.time()
+
+    if current_time < sunrise or current_time > sunset:
+        return "Night"
+    else:
+        return "Day"
+
 
 @csrf_exempt
 def predict(request):
@@ -88,12 +85,15 @@ def predict(request):
 	if request.method == 'POST':
 		body_unicode = request.body.decode('utf-8')
 		body = json.loads(body_unicode)
-		content = body["data"]
-		print(content)
+		print(body['luxLevel'])
 
-		rf_prediction = rf.predict([content])
+		if (day_night(body) == "Day"):
+			prediction = clf_day.predict(np.array(body['luxLevel']).reshape(1,-1))
+		else:
+			prediction = clf_night.predict(np.array(body['luxLevel']).reshape(1,-1))
+
 		response = {
-			"prediction" : str(rf_prediction[0])
+			"prediction" : str(prediction[0])
 		}
 
 	return HttpResponse(json.dumps(response))
