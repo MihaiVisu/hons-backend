@@ -33,7 +33,7 @@ class CollectedData(models.Model):
     accuracy = models.DecimalField(max_digits=15, decimal_places=7, blank=True, null=True)
     lux_level = models.DecimalField(max_digits=15, decimal_places=7, blank=True, null=True)
     motion = models.DecimalField(max_digits=15, decimal_places=7, blank=True, null=True)
-    time = models.TimeField()
+    time = models.TimeField(blank=True, null=True)
     transport_label = models.ForeignKey('ModeOfTransport',
         blank=True, null=True, on_delete=models.SET_NULL)
     dataset = models.ForeignKey('Dataset', 
