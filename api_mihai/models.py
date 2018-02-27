@@ -31,6 +31,8 @@ class CollectedData(models.Model):
     longitude = models.DecimalField(max_digits=15, decimal_places=7)
     altitude = models.DecimalField(max_digits=15, decimal_places=7, blank=True, null=True)
     accuracy = models.DecimalField(max_digits=15, decimal_places=7, blank=True, null=True)
+    lux_level = models.DecimalField(max_digits=15, decimal_places=7, blank=True, null=True)
+    motion = models.DecimalField(max_digits=15, decimal_places=7, blank=True, null=True)
     time = models.TimeField()
     transport_label = models.ForeignKey('ModeOfTransport',
         blank=True, null=True, on_delete=models.SET_NULL)
