@@ -42,6 +42,8 @@ def labelled_classified_data(request,
 	dataset_id,
 	classifier,
 	validation_criterion,
+	normalise_bin_counts,
+	include_urban_environments,
 	folds_number):
 
 	serializer = GeoJsonSerializer()
@@ -61,6 +63,13 @@ def labelled_classified_data(request,
 
 	x_tr = np.array(features.values_list(*attrs))
 	y_tr = np.array(features.values_list('transport_label', flat=True))
+
+	if normalise_bin_counts:
+		x_tr = x_tr/np.sum(x_tr, axis=1).reshape(-1,1)
+	if include_urban_environments:
+		cl = KmeansClassifier()
+		clusters = cl.get_environment_clusters(features, 40, attrs, 6)
+		x_tr = np.append(x_tr, clusters.reshape(-1,1), axis=1)
 
 	total_features = features.count()
 
