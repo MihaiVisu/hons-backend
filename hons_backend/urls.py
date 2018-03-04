@@ -26,7 +26,7 @@ urlpatterns = [
 	path('api_vlad/predict_pollution', vlad_views.predict_pollution, name='predict_pollution'),
 	path('api_mihai/labelled_clustered_data/<int:dataset_id>/<int:number_location_clusters>/<int:number_environment_clusters>/', 
 		mihai_views.labelled_unsupervised_data),
-	path('api_mihai/labelled_classified_data/<int:dataset_id>/<slug:classifier>/<slug:validation_criterion>/<int:folds_number>/',
+	path('api_mihai/labelled_classified_data/<int:dataset_id>/<slug:classifier>/<slug:validation_criterion>/<int:normalise_bin_counts>/<int:include_urban_environments>/<int:folds_number>/',
 		mihai_views.labelled_classified_data),
 	path('api_mihai/attributes/', mihai_views.get_attributes),
 ]

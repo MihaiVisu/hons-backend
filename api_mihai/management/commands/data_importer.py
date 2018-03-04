@@ -22,6 +22,20 @@ class Command(BaseCommand):
 				if row['temperature'] == "" or row['humidity'] == "":
 					continue
 
+				motion = 0.0
+				lux_level = 0.0
+				time = None
+				accuracy = None
+
+				if 'motion' in row.keys():
+					motion = row['motion']
+				if 'luxLevel' in row.keys():
+					lux_level = row['luxLevel']
+				if 'time' in row.keys():
+					time = row['time']
+				if row['gpsAccuracy']:
+					accuracy = float(row['gpsAccuracy'])
+
 				feature = CollectedData(
 					phone_timestamp=row['phoneTimestamp'],
 					pm1=float(row['pm1']),
@@ -32,10 +46,12 @@ class Command(BaseCommand):
 					latitude=float(row['gpsLatitude']),
 					longitude=float(row['gpsLongitude']),
 					altitude=float(row['gpsAltitude']),
-					accuracy=float(row['gpsAccuracy']),
+					accuracy=accuracy,
 					total=row['total'],
-					time=row['time'],
+					time=time,
 					dataset_id=options['dataset'],
+					motion=motion,
+					lux_level=lux_level,
 				)
 
 				for val in bin_vals:
