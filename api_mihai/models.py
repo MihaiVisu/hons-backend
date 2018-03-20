@@ -4,7 +4,7 @@ from django.db import models
 
 
 class CollectedData(models.Model):
-    phone_timestamp = models.BigIntegerField()
+    phone_timestamp = models.CharField(max_length=50, blank=True, null=True)
     pm1 = models.DecimalField(max_digits=15, decimal_places=7)
     pm2_5 = models.DecimalField(max_digits=15, decimal_places=7)
     pm10 = models.DecimalField(max_digits=15, decimal_places=7)

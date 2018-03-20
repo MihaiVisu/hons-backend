@@ -1,4 +1,6 @@
 import urllib
+import os
+import csv
 
 import numpy as np
 
@@ -21,12 +23,76 @@ def upload_file(request):
 	if request.method == 'POST':
 		dataset_name = request.POST.get('dataset')
 
-		dataset_obj = Dataset.objects.get_or_create(name=dataset_name)
+		try:
+			dataset_obj = Dataset.objects.get_or_create(name=dataset_name)[0]
+			print(dataset_obj)
 
-		with open('media/file.csv', 'wb') as destination:
-			for chunk in request.FILES.get('upload_file', False).chunks():
-				destination.write(chunk)
-	response = "Successfully uploaded file"
+			with open('media/file.csv', 'wb') as destination:
+				for chunk in request.FILES.get('upload_file', False).chunks():
+					destination.write(chunk)
+
+			with open('media/file.csv', 'rt') as csvfile:
+				reader = csv.DictReader(csvfile, delimiter=',', quotechar='\"')
+				bin_vals = ['bin'+str(num) for num in range(0,16)]
+				for row in reader:
+
+					if row['temperature'] == "" or row['humidity'] == "":
+						continue
+
+					transport_label_id = None
+					if 'environment_index' in row.keys():
+						transport_label_id = row['environment_index']
+
+					altitude = None
+					if 'gpsAltitude' in row.keys():
+						if row['gpsAltitude']:
+							altitude = float(row['gpsAltitude'])
+
+					motion = 0.0
+					lux_level = 0.0
+					time = None
+					accuracy = None
+
+					if 'motion' in row.keys():
+						motion = row['motion']
+					if 'luxLevel' in row.keys():
+						lux_level = row['luxLevel']
+					if 'time' in row.keys():
+						time = row['time']
+					if 'gpsAccuracy' in row.keys():	
+						if row['gpsAccuracy']:
+							accuracy = float(row['gpsAccuracy'])
+
+					feature = CollectedData(
+						phone_timestamp=row['phoneTimestamp'],
+						pm1=float(row['pm1']),
+						pm2_5=float(row['pm2_5']),
+						pm10=float(row['pm10']),
+						temperature=float(row['temperature']),
+						humidity=float(row['humidity']),
+						latitude=float(row['gpsLatitude']),
+						longitude=float(row['gpsLongitude']),
+						altitude=altitude,
+						accuracy=accuracy,
+						total=row['total'],
+						time=time,
+						dataset=dataset_obj,
+						motion=motion,
+						lux_level=lux_level,
+						transport_label_id=transport_label_id,
+					)
+
+					for val in bin_vals:
+						setattr(feature, val, row[val])
+					# save newly created feature
+					feature.save()
+
+			os.remove('media/file.csv')
+
+		except Exception as e:
+			print(e)
+			response = 0
+	response = 1
 	return HttpResponseRedirect('http://localhost:8000/?response={}'.format(response))
 
 
@@ -36,7 +102,7 @@ def labelled_unsupervised_data(request,
 	number_environment_clusters):
 
 	serializer = GeoJsonSerializer()
-	classifier = KmeansClassifier()
+	classifier = KmeansClassifier()	
 
 	if request.method == "GET":
 		attrs = urllib.parse.unquote(request.GET.get('attrs[]')).split(',')
