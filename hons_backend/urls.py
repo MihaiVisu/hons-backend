@@ -30,4 +30,5 @@ urlpatterns = [
 		mihai_views.labelled_classified_data),
 	path('api_mihai/attributes/', mihai_views.get_attributes),
 	path('api_mihai/upload_file/', mihai_views.upload_file),
+	path('api_mihai/datasets/', mihai_views.get_datasets),
 ]

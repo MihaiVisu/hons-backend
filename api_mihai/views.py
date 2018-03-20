@@ -4,7 +4,8 @@ import numpy as np
 
 from django.http import JsonResponse
 from django.http import HttpResponseRedirect
-from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.csrf import csrf_exempt, csrf_protect
+from django.core import serializers
 
 from sklearn.cross_validation import KFold
 from sklearn.model_selection import train_test_split
@@ -18,12 +19,15 @@ from .classifiers import classifiers_dict
 @csrf_exempt
 def upload_file(request):
 	if request.method == 'POST':
+		dataset_name = request.POST.get('dataset')
+
+		dataset_obj = Dataset.objects.get_or_create(name=dataset_name)
 
 		with open('media/file.csv', 'wb') as destination:
 			for chunk in request.FILES.get('upload_file', False).chunks():
 				destination.write(chunk)
-
-	return HttpResponseRedirect('http://localhost:8000')
+	response = "Successfully uploaded file"
+	return HttpResponseRedirect('http://localhost:8000/?response={}'.format(response))
 
 
 def labelled_unsupervised_data(request, 
@@ -109,6 +113,9 @@ def labelled_classified_data(request,
 		serializer.serialize(CollectedData, features, clusters, extras)
 	)
 
+def get_datasets(request):
+	data = [{'id': obj.pk, 'name': obj.name} for obj in Dataset.objects.all()]
+	return JsonResponse(data, safe=False)
 
 def get_attributes(request):
 	excluded_fields = [
