@@ -3,6 +3,7 @@ import urllib
 import numpy as np
 
 from django.http import JsonResponse
+from django.http import HttpResponseRedirect
 from django.views.decorators.csrf import csrf_exempt
 
 from sklearn.cross_validation import KFold
@@ -12,6 +13,17 @@ from .models import *
 from .serializers import GeoJsonSerializer
 from .classifiers import KmeansClassifier
 from .classifiers import classifiers_dict
+
+
+@csrf_exempt
+def upload_file(request):
+	if request.method == 'POST':
+
+		with open('media/file.csv', 'wb') as destination:
+			for chunk in request.FILES.get('upload_file', False).chunks():
+				destination.write(chunk)
+
+	return HttpResponseRedirect('http://localhost:8000')
 
 
 def labelled_unsupervised_data(request, 
@@ -29,7 +41,7 @@ def labelled_unsupervised_data(request,
 
 	features = CollectedData.objects.order_by('time').filter(
 		dataset=dataset_id).filter(
-		pm10__gt=0).filter(pm10__lt=450).filter(temperature__gt=0)
+		pm10__gt=0).filter(temperature__gt=0).filter(humidity__gt=0).filter(total__gt=0)
 
 	clusters = classifier.get_environment_clusters(features, number_location_clusters, attrs, number_environment_clusters)
 
@@ -113,7 +125,6 @@ def get_attributes(request):
 	fields = tuple(map(lambda x: x.name, 
 		filter(lambda x: x.name not in excluded_fields, CollectedData._meta.get_fields())))
 	return JsonResponse(fields, safe=False)
-
 
 
 

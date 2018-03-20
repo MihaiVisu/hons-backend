@@ -22,6 +22,15 @@ class Command(BaseCommand):
 				if row['temperature'] == "" or row['humidity'] == "":
 					continue
 
+				transport_label_id = None
+				if 'environment_index' in row.keys():
+					transport_label_id = row['environment_index']
+
+				altitude = None
+				if 'gpsAltitude' in row.keys():
+					if row['gpsAltitude']:
+						altitude = float(row['gpsAltitude'])
+
 				motion = 0.0
 				lux_level = 0.0
 				time = None
@@ -33,8 +42,9 @@ class Command(BaseCommand):
 					lux_level = row['luxLevel']
 				if 'time' in row.keys():
 					time = row['time']
-				if row['gpsAccuracy']:
-					accuracy = float(row['gpsAccuracy'])
+				if 'gpsAccuracy' in row.keys():	
+					if row['gpsAccuracy']:
+						accuracy = float(row['gpsAccuracy'])
 
 				feature = CollectedData(
 					phone_timestamp=row['phoneTimestamp'],
@@ -45,13 +55,14 @@ class Command(BaseCommand):
 					humidity=float(row['humidity']),
 					latitude=float(row['gpsLatitude']),
 					longitude=float(row['gpsLongitude']),
-					altitude=float(row['gpsAltitude']),
+					altitude=altitude,
 					accuracy=accuracy,
 					total=row['total'],
 					time=time,
 					dataset_id=options['dataset'],
 					motion=motion,
 					lux_level=lux_level,
+					transport_label_id=transport_label_id,
 				)
 
 				for val in bin_vals:
