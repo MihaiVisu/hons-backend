@@ -25,7 +25,6 @@ def upload_file(request):
 
 		try:
 			dataset_obj = Dataset.objects.get_or_create(name=dataset_name)[0]
-			print(dataset_obj)
 
 			with open('media/file.csv', 'wb') as destination:
 				for chunk in request.FILES.get('upload_file', False).chunks():
@@ -111,7 +110,12 @@ def labelled_unsupervised_data(request,
 
 	features = CollectedData.objects.order_by('time').filter(
 		dataset=dataset_id).filter(
-		pm10__gt=0).filter(temperature__gt=0).filter(humidity__gt=0).filter(total__gt=0)
+		pm10__gt=0).filter(
+		temperature__gt=0).filter(
+		bin0__lt=1000).filter(
+		humidity__gt=0).filter(
+		total__gt=0).filter(
+		total__lt=12000)
 
 	clusters = classifier.get_environment_clusters(features, number_location_clusters, attrs, number_environment_clusters)
 
@@ -139,7 +143,10 @@ def labelled_classified_data(request,
 	# according to experiments results
 	features = CollectedData.objects.order_by('time').filter(
 		dataset=dataset_id).filter(
-		pm10__gt=0).filter(pm10__lt=450).filter(temperature__gt=0)
+		pm10__gt=0).filter(
+		pm10__lt=450).filter(
+		temperature__gt=0).filter(
+		total__lt=12000)
 
 	classifier = classifiers_dict[classifier]
 
