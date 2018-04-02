@@ -12,8 +12,10 @@ import numpy as np
 classifiers_dict = {
     'rf': RandomForestClassifier(random_state=0, n_estimators=50, n_jobs=-1),
     'svc': SVC(kernel="rbf", gamma="auto", probability=True),
-    'knn': KNeighborsClassifier(n_neighbors=15)
+    'knn': KNeighborsClassifier(n_neighbors=15),
+    'mixed_model': 'mixed_model'
 }
+
 
 
 class KmeansClassifier(object):
@@ -44,7 +46,7 @@ class KmeansClassifier(object):
     def get_environment_clusters(self, data, cluster_no, cols, number_environment_clusters):
         means, clustered_indices = self.__get_location_cluster_means(
             data, cluster_no, cols)
-        # we have 5-6 clusters corresponding to 5-6 different environments
+        # we have 5-6 clusters corresponding to 5 different environments
         environment_kmeans = KMeans(n_clusters=number_environment_clusters, random_state=0)
         # predict the cluster indices
         environment_indices = environment_kmeans.fit_predict(means)
