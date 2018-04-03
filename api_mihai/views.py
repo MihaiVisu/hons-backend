@@ -180,29 +180,27 @@ def labelled_classified_data(request,
 	else:
 		attrs = None
 
-	if folds_number:
-		kf = KFold(total_features, n_folds=folds_number, shuffle=True, random_state=0)
-		score_array = np.empty(kf.n_folds)
 
 	# apply the outlier removal for pm10 values for the training data
 	# according to experiments results
 	features = CollectedData.objects.filter(
-		dataset=dataset_id).filter(
-		pm10__gt=0).filter(
-		pm10__lt=450).exclude(
+		dataset=dataset_id).exclude(
 		transport_label_id=7).filter(
 		temperature__gt=0).filter(
-		total__lt=10000)
+		total__lt=12000)
 
+	total_features = features.count()
+
+	if folds_number:
+		kf = KFold(total_features, n_folds=folds_number, shuffle=True, random_state=0)
+		score_array = np.empty(kf.n_folds)
 
 	if not folds_number:
 		training_inputs = CollectedData.objects.filter(
-			dataset__name='Training Data').filter(
-			pm10__gt=0).filter(
-			pm10__lt=450).exclude(
+			dataset__name='Training Data').exclude(
 			transport_label_id=7).filter(
 			temperature__gt=0).filter(
-			total__lt=10000)
+			total__lt=12000)
 
 	classifier = classifiers_dict[classifier]
 
@@ -247,8 +245,6 @@ def labelled_classified_data(request,
 			cl = KmeansClassifier()
 			clusters = cl.get_environment_clusters(features, 40, attrs, 5)
 			x_tr = np.append(x_tr, clusters.reshape(-1,1), axis=1)
-
-	total_features = features.count()
 
 	if classifier == 'mixed_model':
 		estimator = RandomForestClassifier(random_state=0, n_jobs=-1, n_estimators=260)
