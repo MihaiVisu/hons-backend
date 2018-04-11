@@ -74,6 +74,14 @@ def upload_file(request):
 					latitude = None
 					longitude = None
 
+					total = 0
+
+					# check total
+					if 'total' in row.keys():
+						total = row['total']
+					else:
+						total = sum(int(row[bin_idx]) for bin_idx in bin_vals)
+
 					# coordinates checking
 					if 'gpsLatitude' in row.keys():
 						if row['gpsLatitude']:
@@ -115,7 +123,7 @@ def upload_file(request):
 						longitude=longitude,
 						altitude=altitude,
 						accuracy=accuracy,
-						total=row['total'],
+						total=total,
 						time=time,
 						dataset=dataset_obj,
 						motion=motion,
@@ -187,7 +195,8 @@ def labelled_classified_data(request,
 		dataset=dataset_id).exclude(
 		transport_label_id=7).filter(
 		temperature__gt=0).filter(
-		total__lt=12000)
+		total__lt=12000).filter(
+		humidity__gt=0)
 
 	total_features = features.count()
 
@@ -197,10 +206,11 @@ def labelled_classified_data(request,
 
 	if not folds_number:
 		training_inputs = CollectedData.objects.filter(
-			dataset__name='Training Data').exclude(
+			dataset__name='Training Data For London').exclude(
 			transport_label_id=7).filter(
 			temperature__gt=0).filter(
-			total__lt=12000)
+			total__lt=12000).filter(
+			humidity__gt=0)
 
 	classifier = classifiers_dict[classifier]
 
@@ -229,25 +239,49 @@ def labelled_classified_data(request,
 		if normalise_bin_counts:
 			x_tr1[:,:-2] = x_tr1[:,:-2]/np.sum(x_tr1[:,:-2], axis=1).reshape(-1,1)
 			x_tr2[:,:-1] = x_tr2[:,:-1]/np.sum(x_tr2[:,:-1], axis=1).reshape(-1,1)
+
+			x_ts1[:,:-2] = x_ts1[:,:-2]/np.sum(x_ts1[:,:-2], axis=1).reshape(-1,1)
+			x_ts2[:,:-1] = x_ts2[:,:-1]/np.sum(x_ts2[:,:-1], axis=1).reshape(-1,1)
 		if include_urban_environments:
 			cl = KmeansClassifier()
-			clusters = cl.get_environment_clusters(features, 40, attrs, 5)
+			clusters = cl.get_environment_clusters(training_inputs, 40, attrs, 5)
 			x_tr2 = np.append(x_tr2, clusters.reshape(-1,1), axis=1)
+			val_clusters = cl.get_environment_clusters(features, 40, attrs, 5, cl)
+			x_ts2 = np.append(x_ts2, val_clusters.reshape(-1,1), axis=1)
 
+	# not mixed model case
 	else:
 
-		x_tr = np.array(features.values_list(*attrs))
-		y_tr = np.array(features.values_list('transport_label', flat=True))
+		if folds_number:
+			x_tr = np.array(features.values_list(*attrs))
+			y_tr = np.array(features.values_list('transport_label', flat=True))
 
-		if normalise_bin_counts:
-			x_tr = x_tr/np.sum(x_tr, axis=1).reshape(-1,1)
-		if include_urban_environments:
-			cl = KmeansClassifier()
-			clusters = cl.get_environment_clusters(features, 40, attrs, 5)
-			x_tr = np.append(x_tr, clusters.reshape(-1,1), axis=1)
+			if normalise_bin_counts:
+				x_tr = x_tr/np.sum(x_tr, axis=1).reshape(-1,1)
+			if include_urban_environments:
+				cl = KmeansClassifier()
+				clusters = cl.get_environment_clusters(features, 40, attrs, 5)
+				x_tr = np.append(x_tr, clusters.reshape(-1,1), axis=1)
+
+		else:
+			x_tr = np.array(training_inputs.values_list(*attrs))
+			y_tr = np.array(training_inputs.values_list('transport_label', flat=True))
+
+			x_ts = np.array(features.values_list(*attrs))
+			y_ts = np.array(features.values_list('transport_label', flat=True))
+
+
+			if normalise_bin_counts:
+				x_tr = x_tr/np.sum(x_tr, axis=1).reshape(-1,1)
+				x_ts = x_ts/np.sum(x_ts, axis=1).reshape(-1,1)
+			if include_urban_environments:
+				cl = KmeansClassifier()
+				clusters = cl.get_environment_clusters(features, 40, attrs, 5)
+				x_tr = np.append(x_tr, clusters.reshape(-1,1), axis=1)
+
 
 	if classifier == 'mixed_model':
-		estimator = RandomForestClassifier(random_state=0, n_jobs=-1, n_estimators=260)
+		estimator = RandomForestClassifier(random_state=0, n_jobs=-1, n_estimators=300)
 		if folds_number:
 			for (idx, (train_feature, test_feature)) in enumerate(kf):
 				
@@ -266,12 +300,17 @@ def labelled_classified_data(request,
 
 
 	else:
-		for (idx, (train_feature, test_feature)) in enumerate(kf):
-			classifier.fit(x_tr[train_feature], y_tr[train_feature])
-			score_array[idx] = classifier.score(x_tr[test_feature], y_tr[test_feature])
+		if folds_number:
+			for (idx, (train_feature, test_feature)) in enumerate(kf):
+				classifier.fit(x_tr[train_feature], y_tr[train_feature])
+				score_array[idx] = classifier.score(x_tr[test_feature], y_tr[test_feature])
+			clusters = classifier.predict(x_tr)
+			accuracy = np.mean(score_array)
+		else:
 
-		clusters = classifier.predict(x_tr)
-		accuracy = np.mean(score_array)
+			classifier.fit(x_tr, y_tr)
+			accuracy = classifier.score(x_ts, y_ts)
+			clusters = classifier.predict(x_ts)
 
 	extras = {
 		"score": np.around(accuracy, 2),
