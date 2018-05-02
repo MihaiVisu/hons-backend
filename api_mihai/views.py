@@ -185,6 +185,10 @@ def labelled_classified_data(request,
 
 	if request.method == "GET":
 		attrs = urllib.parse.unquote(request.GET.get('attrs[]')).split(',')
+		# extra = urllib.parse.unquote(request.GET.get('extra'));
+		train_dataset_id = None
+		if not folds_number:
+			train_dataset_id = int(request.GET.get('train_dataset'))
 	else:
 		attrs = None
 
@@ -204,9 +208,9 @@ def labelled_classified_data(request,
 		kf = KFold(total_features, n_folds=folds_number, shuffle=True, random_state=0)
 		score_array = np.empty(kf.n_folds)
 
-	if not folds_number:
+	if not folds_number and train_dataset_id:
 		training_inputs = CollectedData.objects.filter(
-			dataset__name='Training Data For London').exclude(
+			dataset__id=train_dataset_id).exclude(
 			transport_label_id=7).filter(
 			temperature__gt=0).filter(
 			total__lt=12000).filter(
