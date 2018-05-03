@@ -187,8 +187,14 @@ def labelled_classified_data(request,
 		attrs = urllib.parse.unquote(request.GET.get('attrs[]')).split(',')
 		# extra = urllib.parse.unquote(request.GET.get('extra'));
 		train_dataset_id = None
+		attrs_0 = None
+		attrs_1 = None
 		if not folds_number:
 			train_dataset_id = int(request.GET.get('train_dataset'))
+			attrs_0 = urllib.parse.unquote(request.GET.get('attrs_0')).split(',')
+			attrs_1 = urllib.parse.unquote(request.GET.get('attrs_1')).split(',')
+			print(attrs_0)
+			print(attrs_1)
 	else:
 		attrs = None
 
@@ -221,8 +227,8 @@ def labelled_classified_data(request,
 	if classifier == 'mixed_model':
 		bin_vals = ['bin'+str(i) for i in range(0,16)]
 		attributes_list = [
-			bin_vals[8:]+['temperature', 'humidity'],
-			bin_vals[:8]+['total']
+			attrs_0,
+			attrs_1
 		]
 
 		if folds_number:
