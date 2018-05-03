@@ -185,12 +185,13 @@ def labelled_classified_data(request,
 
 	if request.method == "GET":
 		attrs = urllib.parse.unquote(request.GET.get('attrs[]')).split(',')
-		# extra = urllib.parse.unquote(request.GET.get('extra'));
+
 		train_dataset_id = None
 		attrs_0 = None
 		attrs_1 = None
 		if not folds_number:
 			train_dataset_id = int(request.GET.get('train_dataset'))
+		if classifier == 'mixed_model':
 			attrs_0 = urllib.parse.unquote(request.GET.get('attrs_0')).split(',')
 			attrs_1 = urllib.parse.unquote(request.GET.get('attrs_1')).split(',')
 			print(attrs_0)
@@ -249,15 +250,16 @@ def labelled_classified_data(request,
 		if normalise_bin_counts:
 			x_tr1[:,:-2] = x_tr1[:,:-2]/np.sum(x_tr1[:,:-2], axis=1).reshape(-1,1)
 			x_tr2[:,:-1] = x_tr2[:,:-1]/np.sum(x_tr2[:,:-1], axis=1).reshape(-1,1)
-
-			x_ts1[:,:-2] = x_ts1[:,:-2]/np.sum(x_ts1[:,:-2], axis=1).reshape(-1,1)
-			x_ts2[:,:-1] = x_ts2[:,:-1]/np.sum(x_ts2[:,:-1], axis=1).reshape(-1,1)
+			if not folds_number:
+				x_ts1[:,:-2] = x_ts1[:,:-2]/np.sum(x_ts1[:,:-2], axis=1).reshape(-1,1)
+				x_ts2[:,:-1] = x_ts2[:,:-1]/np.sum(x_ts2[:,:-1], axis=1).reshape(-1,1)
 		if include_urban_environments:
 			cl = KmeansClassifier()
 			clusters = cl.get_environment_clusters(training_inputs, 40, attrs, 5)
 			x_tr2 = np.append(x_tr2, clusters.reshape(-1,1), axis=1)
-			val_clusters = cl.get_environment_clusters(features, 40, attrs, 5, cl)
-			x_ts2 = np.append(x_ts2, val_clusters.reshape(-1,1), axis=1)
+			if not folds_number:
+				val_clusters = cl.get_environment_clusters(features, 40, attrs, 5, cl)
+				x_ts2 = np.append(x_ts2, val_clusters.reshape(-1,1), axis=1)
 
 	# not mixed model case
 	else:
